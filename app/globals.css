@@ -24,10 +24,3 @@ textarea::placeholder, input::placeholder { color: #AAA; }
   0%, 60%, 100% { transform: translateY(0); }
   30% { transform: translateY(-6px); }
 }
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
