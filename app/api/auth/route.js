@@ -100,13 +100,13 @@ async function getWpProfileXmlRpc(login, password) {
 
 function resolveRole(wooRole, wpRoles) {
   // Check WP roles first (more accurate)
-  if (wpRoles) {
+  if (wpRoles && Array.isArray(wpRoles)) {
     if (wpRoles.includes("administrator")) return "administrador";
-    if (wpRoles.includes("revendedor")) return "revendedor";
+    if (wpRoles.some(r => r === "revendedor" || r === "mj_revendedor" || r.includes("revend"))) return "revendedor";
   }
   // Fallback to WooCommerce role field
   if (wooRole === "administrator") return "administrador";
-  if (wooRole === "revendedor") return "revendedor";
+  if (wooRole === "revendedor" || wooRole === "mj_revendedor" || (typeof wooRole === "string" && wooRole.includes("revend"))) return "revendedor";
   return "cliente";
 }
 

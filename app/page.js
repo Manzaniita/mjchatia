@@ -395,11 +395,20 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <button onClick={() => { setUser(null); setMessages([]); }} style={{
-          background: "rgba(255,255,255,.08)", border: "none", color: "#888",
-          borderRadius: 8, padding: "6px 12px", fontSize: 11, cursor: "pointer",
-          fontFamily: "inherit", fontWeight: 600,
-        }}>Salir</button>
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          {(user.role === "cliente" || user.role === "revendedor") && (
+            <a href="https://mjimportaciones.com.ar/mi-cuenta/orders/" target="_blank" rel="noopener noreferrer" style={{
+              background: "rgba(255,255,255,.08)", border: "none", color: "#4CAF50",
+              borderRadius: 8, padding: "6px 12px", fontSize: 11, cursor: "pointer",
+              fontFamily: "inherit", fontWeight: 600, textDecoration: "none",
+            }}>📋 Pedidos</a>
+          )}
+          <button onClick={() => { setUser(null); setMessages([]); }} style={{
+            background: "rgba(255,255,255,.08)", border: "none", color: "#888",
+            borderRadius: 8, padding: "6px 12px", fontSize: 11, cursor: "pointer",
+            fontFamily: "inherit", fontWeight: 600,
+          }}>Salir</button>
+        </div>
       </div>
 
       {/* Messages */}

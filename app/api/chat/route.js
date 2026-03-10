@@ -156,24 +156,40 @@ PEDIDOS: Antes de crear un pedido, SIEMPRE preguntá el método de pago (Efectiv
 
 LINKS POST-PEDIDO: Después de crear el pedido exitosamente, SIEMPRE incluí en tu respuesta:
 - WhatsApp: https://wa.me/542233476498?text= seguido del mensaje URL-encoded con datos del pedido (cliente, producto, cantidad, precio, método de pago)
-- Instagram: https://ig.me/m/mj.importamdp`;
+- Instagram: https://ig.me/m/mj.importamdp
+- Mis pedidos: https://mjimportaciones.com.ar/mi-cuenta/orders/`;
   }
   if (role === "cliente") {
+    const clientActions = `ACCIONES PERMITIDAS (solo tras confirmación):
+\`\`\`action
+{"type":"CREATE_ORDER","customer_id":${user?.woo_id||user?.id},"line_items":[{"product_id":ID,"quantity":N}],"payment_method":"cod","payment_method_title":"Efectivo","status":"processing"}
+\`\`\`
+NOTA: NUNCA uses subtotal ni total en line_items. Los precios se toman automáticamente del catálogo. payment_method: cod=Efectivo, bacs=Transferencia, tarjeta=Tarjeta, mercadopago=MercadoPago.`;
+
     return `ASESOR DE COMPRAS de MJ Importaciones. Hablás con ${userName} (CLIENTE).
 ${data}
-Puede: ver catálogo, crear pedidos (customer_id:${user?.woo_id||user?.id}), asesoramiento.
+
+RESTRICCIONES DE CLIENTE:
+- SOLO puede: ver catálogo, recibir asesoramiento, crear pedidos A SU NOMBRE (customer_id:${user?.woo_id||user?.id}).
+- NO puede: cambiar precios, crear pedidos para otros clientes, editar productos, cambiar stock, crear clientes, ver datos de otros clientes, modificar pedidos existentes.
+- Los pedidos SIEMPRE usan los precios del catálogo. NUNCA uses subtotal ni total custom en line_items.
+- Si el cliente pide algo prohibido, explicale amablemente que no tiene permisos y sugerí contactar a MJ Importaciones.
+
+CARRITO: El cliente puede agregar varios productos antes de confirmar. Mantené una lista de lo que quiere y mostrá el resumen con precios del catálogo antes de confirmar.
+
 Guiá: preguntá qué busca, para qué, presupuesto. Recomendá del catálogo real.
 Mostrá los 3 precios: Lista(tarjeta), Transferencia(-10%), Efectivo(-20%).
 ${confirm}
-${actions}
+${clientActions}
 ${fmt}
 Cálido, servicial, honesto.
 
 PEDIDOS: Antes de crear un pedido, SIEMPRE preguntá el método de pago (Efectivo, Transferencia, Tarjeta, MercadoPago).
 
 LINKS POST-PEDIDO: Después de crear el pedido exitosamente, SIEMPRE incluí en tu respuesta:
-- WhatsApp: https://wa.me/542233476498?text= seguido del mensaje URL-encoded con datos del pedido (cliente, producto, cantidad, precio total, método de pago)
-- Instagram: https://ig.me/m/mj.importamdp`;
+- WhatsApp: https://wa.me/542233476498?text= seguido del mensaje URL-encoded con datos del pedido
+- Instagram: https://ig.me/m/mj.importamdp
+- Mis pedidos: https://mjimportaciones.com.ar/mi-cuenta/orders/`;
   }
   return `Asesor de MJ Importaciones. Hablás con un VISITANTE sin cuenta.
 ${data}
@@ -182,12 +198,31 @@ ${fmt}
 Mostrá precios lista. Cálido y servicial.`;
 }
 
-async function processActions(text) {
+async function processActions(text, userRole, userWooId) {
   const re = /```action\s*\n([\s\S]*?)\n```/g;
   let m; const results = [];
   while ((m = re.exec(text)) !== null) {
     try {
       const a = JSON.parse(m[1]); let r;
+
+      // SERVER-SIDE ENFORCEMENT: restrict client actions
+      if (userRole === "cliente") {
+        // Clients can ONLY create orders for themselves with store prices
+        if (a.type !== "CREATE_ORDER") {
+          results.push({type:"error",success:false,error:"No tenés permisos para esta acción"}); continue;
+        }
+        // Force customer_id to their own
+        if (userWooId) a.customer_id = userWooId;
+        // Strip custom pricing from line items
+        if (a.line_items) {
+          a.line_items = a.line_items.map(li => ({ product_id: li.product_id, quantity: li.quantity || 1, variation_id: li.variation_id }));
+        }
+      }
+
+      // Invitados cannot perform any action
+      if (userRole === "invitado") {
+        results.push({type:"error",success:false,error:"Necesitás crear una cuenta para realizar esta acción"}); continue;
+      }
       switch (a.type) {
         case "UPDATE_PRODUCT":
           r = await wooFetch(`products/${a.id}`, "PUT", a.changes);
@@ -238,7 +273,9 @@ export async function POST(request) {
     if (data.error) return NextResponse.json({message:`Error IA: ${data.error.message}`,actions:[]},{status:500});
 
     const raw = data.content?.map(b=>b.text||"").join("")||"Error.";
-    const { cleanText, results } = await processActions(raw);
+    const userRole = user?.role || "invitado";
+    const userWooId = user?.woo_id || user?.id || null;
+    const { cleanText, results } = await processActions(raw, userRole, userWooId);
     return NextResponse.json({ message: cleanText, actions: results });
   } catch (err) {
     return NextResponse.json({message:"Error: "+err.message,actions:[]},{status:500});
