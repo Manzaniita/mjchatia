@@ -21,6 +21,29 @@ function FormattedText({ text }) {
         let key = 0;
 
         while (remaining.length > 0) {
+          // URL: https://... or http://...
+          const urlMatch = remaining.match(/https?:\/\/[^\s)]+/);
+          if (urlMatch) {
+            const idx = remaining.indexOf(urlMatch[0]);
+            if (idx > 0) parts.push(<span key={key++}>{remaining.slice(0, idx)}</span>);
+            const isWhatsApp = urlMatch[0].includes("wa.me");
+            const isInstagram = urlMatch[0].includes("ig.me") || urlMatch[0].includes("instagram.com");
+            const linkText = isWhatsApp ? "📱 Enviar por WhatsApp" : isInstagram ? "📸 Enviar por Instagram" : urlMatch[0].length > 50 ? urlMatch[0].slice(0, 47) + "..." : urlMatch[0];
+            parts.push(
+              <a key={key++} href={urlMatch[0]} target="_blank" rel="noopener noreferrer"
+                style={{
+                  color: isWhatsApp ? "#25D366" : isInstagram ? "#E1306C" : "#2E7D32",
+                  textDecoration: "none", fontWeight: 600,
+                  background: isWhatsApp ? "rgba(37,211,102,0.1)" : isInstagram ? "rgba(225,48,108,0.1)" : "transparent",
+                  padding: "2px 8px", borderRadius: 6, wordBreak: "break-all",
+                }}>
+                {linkText}
+              </a>
+            );
+            remaining = remaining.slice(idx + urlMatch[0].length);
+            continue;
+          }
+
           // Bold: **text**
           const boldMatch = remaining.match(/\*\*(.+?)\*\*/);
           if (boldMatch) {
