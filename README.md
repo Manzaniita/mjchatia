@@ -1,63 +1,39 @@
-# WooChat — Asistente IA para MJ Importaciones
+# WooChat v2 — MJ Importaciones
 
-Chat con inteligencia artificial que gestiona tu tienda WooCommerce. Escribís lo que necesitás en lenguaje natural y el asistente lo ejecuta automáticamente.
+Asistente IA con roles para gestionar tu tienda WooCommerce por chat.
 
-## Qué puede hacer
+## Roles
 
-- ✅ Listar productos, precios y stock
-- ✅ Cambiar precios de productos
-- ✅ Actualizar stock
-- ✅ Cambiar estado de pedidos
-- ✅ Crear pedidos nuevos
-- ✅ Crear clientes
-- ✅ Consultar pedidos y clientes
-- ✅ Funciona como PWA (se instala en iPhone y Android)
+| Rol | Puede hacer |
+|-----|------------|
+| **Administrador** | Todo: editar productos/precios/stock, gestionar pedidos, clientes, variaciones |
+| **Revendedor** | Ver catálogo con precios especiales, crear pedidos a su nombre, ver sus pedidos |
+| **Cliente** | Recibir asesoramiento, ver catálogo con precios regulares, crear pedidos |
+| **Invitado** | Ver catálogo, recibir asesoramiento (no puede comprar) |
 
-## Configuración
+## Configuración en Vercel
 
-### 1. Variables de entorno en Vercel
+Settings → Environment Variables:
 
-Andá a tu proyecto en Vercel → Settings → Environment Variables y agregá:
+| Variable | Valor | Descripción |
+|----------|-------|-------------|
+| `WOO_URL` | `https://mjimportaciones.com.ar` | URL de tu tienda |
+| `WOO_CK` | `ck_xxx...` | Consumer Key de WooCommerce |
+| `WOO_CS` | `cs_xxx...` | Consumer Secret de WooCommerce |
+| `ANTHROPIC_API_KEY` | `sk-ant-xxx...` | API key de Anthropic |
+| `WP_ADMIN_USER` | tu usuario admin | Para verificar roles de WordPress |
+| `WP_ADMIN_PASS` | tu contraseña o Application Password | Para la API de WordPress |
 
-| Variable | Valor |
-|----------|-------|
-| `WOO_URL` | `https://mjimportaciones.com.ar` |
-| `WOO_CK` | tu Consumer Key de WooCommerce |
-| `WOO_CS` | tu Consumer Secret de WooCommerce |
-| `ANTHROPIC_API_KEY` | tu API key de Anthropic |
+### Application Password (para WP_ADMIN_PASS)
 
-### 2. API Key de Anthropic
+Para que el login funcione con verificación de roles, necesitás crear una Application Password en WordPress:
 
-1. Ir a https://console.anthropic.com
-2. Crear cuenta o iniciar sesión
-3. Ir a API Keys → Create Key
-4. Copiar la key y pegarla en Vercel como `ANTHROPIC_API_KEY`
+1. Ir a WordPress → Usuarios → Tu perfil
+2. Buscar la sección "Application Passwords" (Contraseñas de aplicación)
+3. Poner nombre "WooChat" → Generar
+4. Copiar la contraseña generada y usarla como `WP_ADMIN_PASS`
 
-### 3. Deploy
+## Instalar como app
 
-Cada push a `main` en GitHub se deploya automáticamente en Vercel.
-
-## Instalar como app en el celular
-
-### iPhone
-1. Abrí la URL en Safari
-2. Tocá el botón de Compartir (cuadrado con flecha)
-3. "Agregar a Inicio"
-
-### Android
-1. Abrí la URL en Chrome
-2. Tocá los 3 puntos → "Instalar app" o "Agregar a pantalla de inicio"
-
-## Estructura del proyecto
-
-```
-app/
-  layout.js          → Layout raíz
-  page.js            → Chat UI (cliente)
-  globals.css        → Estilos globales
-  api/
-    chat/route.js    → Endpoint que habla con Claude y ejecuta acciones en WooCommerce
-    woo/route.js     → Proxy a la API de WooCommerce (mantiene credentials seguras)
-public/
-  manifest.json      → PWA manifest
-```
+**iPhone**: Safari → Compartir → Agregar a Inicio
+**Android**: Chrome → Menú → Instalar app

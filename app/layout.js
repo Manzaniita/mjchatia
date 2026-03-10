@@ -2,17 +2,14 @@ import "./globals.css";
 
 export const metadata = {
   title: "WooChat — MJ Importaciones",
-  description: "Gestiona tu tienda WooCommerce por chat con IA",
+  description: "Asistente IA para gestionar tu tienda",
   manifest: "/manifest.json",
   themeColor: "#1A1A1A",
 };
 
 export const viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  viewportFit: "cover",
+  width: "device-width", initialScale: 1, maximumScale: 1,
+  userScalable: false, viewportFit: "cover",
 };
 
 export default function RootLayout({ children }) {
